@@ -1,19 +1,18 @@
 import { menu } from "./menu.js";
 
 let menuItems = document.querySelector(".jsMenuItems");
+let filterButtons = document.querySelector(".filter-buttons");
 
-let allBtn = document.querySelector(".jsAllBtn");
-let breakfastBtn = document.querySelector(".jsBreakfastBtn");
-let lunchBtn = document.querySelector(".jsLunchBtn");
-let shakesBtn = document.querySelector(".jsShakesBtn");
+window.addEventListener("DOMContentLoaded", () => {
+  createMenu(menu);
+  createButtons();
+});
 
-createMenu(menu);
-
-function createMenu(menu) {
-  menu.forEach((menuItem) => {
+function createMenu(menuArray) {
+  menuArray.forEach((menuItem) => {
     let menuItemHTML = `
     <div class="menu-item">
-      <div class="menu-item-img"><img src="${menuItem.img}" alt=""></div>
+      <div class="menu-item-img"><img src="${menuItem.img}" alt="${menuItem.title}"></div>
       <div class="menu-item-content">
         <div class="menu-item-title">
           <h3>${menuItem.title}</h3>
@@ -27,44 +26,46 @@ function createMenu(menu) {
     </div>`;
     menuItems.innerHTML += menuItemHTML;
   });
-
-  
 }
 
-breakfastBtn.addEventListener("click", () => {
-    let breakfastItems = []
-    menu.forEach((menuItem) => {
-      if(menuItem.category === "breakfast") {
-        breakfastItems.push(menuItem)
+function createButtons() {
+  let categories = menu.reduce(
+    (values, item) => {
+      if (!values.includes(item.category)) {
+        values.push(item.category);
       }
-    })
-    menuItems.innerHTML = ""
-    createMenu(breakfastItems)
-})
+      return values;
+    },
+    ["all"]
+  );
 
-lunchBtn.addEventListener("click", () => {
-  let lunchItems = []
-  menu.forEach((menuItem) => {
-    if(menuItem.category === "lunch") {
-      lunchItems.push(menuItem)
-    }
-  })
-  menuItems.innerHTML = ""
-  createMenu(lunchItems)
-})
+  for (let i = 0; i < categories.length; i++) {
+    let buttonHTML = `
+      <button class="filter-button" data-id="${categories[i]}">${categories[i]}</button>`;
+    filterButtons.innerHTML += buttonHTML;
+  }
 
-shakesBtn.addEventListener("click", () => {
-  let shakesItems = []
-  menu.forEach((menuItem) => {
-    if(menuItem.category === "shakes") {
-      shakesItems.push(menuItem)
-    }
-  })
-  menuItems.innerHTML = ""
-  createMenu(shakesItems)
-})
+  filterButtons.firstElementChild.classList.add("filter-button-active");
 
-allBtn.addEventListener("click", () => {
- menuItems.innerHTML = ""
- createMenu(menu)
-})
+  let filterBtn = document.querySelectorAll(".filter-button");
+
+  filterBtn.forEach((button) => {
+    button.addEventListener("click", (e) => {
+      filterBtn.forEach((button) => {
+        button.classList.remove("filter-button-active");
+      });
+      e.currentTarget.classList.add("filter-button-active");
+      let category = e.currentTarget.dataset.id;
+      let menuCategory = menu.filter((item) => {
+        if (category === item.category) {
+          return item;
+        }
+      });
+      menuItems.innerHTML = "";
+      createMenu(menuCategory);
+      if (category === "all") {
+        createMenu(menu);
+      }
+    });
+  });
+}
